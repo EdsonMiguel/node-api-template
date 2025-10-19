@@ -1,9 +1,16 @@
 import { container } from "tsyringe";
 
+/* --- Hash Provider (Já estava aqui) --- */
 import IHashProvider from "@modules/user/providers/HashProvider/models/IHashProvider";
 import BcryptHashProvider from "@modules/user/providers/HashProvider/implementations/BcryptHashProvider";
 
-// "Receita" para o TSyringe:
-// Quando alguém pedir "HashProvider" (Contrato),
-// entregue uma instância Singleton (única) de "BcryptHashProvider" (Implementação).
 container.registerSingleton<IHashProvider>("HashProvider", BcryptHashProvider);
+
+/* --- User Repository (NOVO!) --- */
+import IUserRepository from "@modules/user/repositories/IUserRepository";
+import UserRepository from "@modules/user/infra/typeorm/repositories/UserRepository";
+
+// "Receita" nova:
+// Quando alguém pedir 'UserRepository' (Contrato),
+// entregue uma instância Singleton (única) de 'UserRepository' (Implementação).
+container.registerSingleton<IUserRepository>("UserRepository", UserRepository);
