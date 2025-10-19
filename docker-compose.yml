@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  postgres_db:
+    image: postgres:14-alpine
+    container_name: template_db
+    restart: always
+    ports:
+      - "5432:5432" # Expõe a porta do PG
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=dockerpass
+      - POSTGRES_DB=template_api
+    volumes:
+      # Garante que os dados não se percam
+      - ./pgdata:/var/lib/postgresql/data
