@@ -1,6 +1,5 @@
 import "dotenv/config";
 
-// Verificações de segurança (fail-fast)
 if (!process.env.JWT_SECRET) {
   throw new Error("FATAL_ERROR: Variável JWT_SECRET não definida no .env");
 }
@@ -10,7 +9,6 @@ if (!process.env.REFRESH_TOKEN_SECRET) {
   );
 }
 
-// Exporta ambas as configurações
 export default {
   jwt: {
     secret: process.env.JWT_SECRET,
@@ -19,7 +17,6 @@ export default {
   refreshToken: {
     secret: process.env.REFRESH_TOKEN_SECRET,
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
-    // Vamos calcular os dias de expiração em números (útil para o banco)
     expiresInDays: 7,
   },
 };

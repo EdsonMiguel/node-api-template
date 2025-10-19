@@ -8,13 +8,8 @@
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
-    /* REFORÇO (O Ponto Crítico): */
-    // Essas duas linhas "ligam" as "etiquetas" (decorators)
-    // Sem elas, o reflect-metadata não funciona e
-    // nem o TSyringe (DI) nem o TypeORM (@Entity) funcionam.
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    /* Apelidos (Clean Architecture) */
     "baseUrl": ".",
     "paths": {
       "@modules/*": [

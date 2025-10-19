@@ -5,22 +5,22 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Exclude } from "class-transformer"; // <-- Importante para a View!
+import { Exclude } from "class-transformer";
 
-@Entity("users") // Diz ao TypeORM que esta classe é a tabela 'users'
+@Entity("users")
 class User {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column() // Coluna padrão (varchar)
+  @Column()
   name!: string;
 
-  @Column({ unique: true }) // O email deve ser único no banco
+  @Column({ unique: true })
   email!: string;
 
   @Column()
-  @Exclude() // <-- DECORATOR DA VIEW (class-transformer)
-  password!: string; // A senha será armazenada como hash
+  @Exclude()
+  password!: string;
 
   @CreateDateColumn()
   created_at!: Date;

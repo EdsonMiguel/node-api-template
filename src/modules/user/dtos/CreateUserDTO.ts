@@ -1,6 +1,5 @@
 import { IsString, IsEmail, MinLength } from "class-validator";
 
-// Agora é uma classe, não uma interface
 class CreateUserDTO {
   @IsString({ message: "O nome deve ser um texto." })
   name!: string;
