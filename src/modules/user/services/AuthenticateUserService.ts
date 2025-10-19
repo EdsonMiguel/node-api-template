@@ -1,24 +1,25 @@
 import { injectable, inject } from "tsyringe";
-// No topo do arquivo
-import { sign, SignOptions } from "jsonwebtoken"; // 1. IMPORTE O TIPO
-// .../ 1. Importa a função de "assinar"
+import { sign, SignOptions } from "jsonwebtoken"; // <- Não mudou
+import { addDays } from "date-fns"; // <- (Vamos instalar esta lib)
 
-import authConfig from "@config/auth"; // 2. Nossas configurações de segredo
+import authConfig from "@config/auth";
 import AppError from "@shared/errors/AppError";
 import User from "../infra/typeorm/entities/User";
 import IUserRepository from "../repositories/IUserRepository";
 import IHashProvider from "../providers/HashProvider/models/IHashProvider";
+import IUserTokensRepository from "../repositories/IUserTokensRepository"; // 1. IMPORTA O NOVO REPOSITÓRIO
 
-// DTO (Data Transfer Object) para a requisição
+// Interface da Requisição (não mudou)
 interface IRequestDTO {
   email: string;
   password: string;
 }
 
-// DTO para a resposta
+// Interface da Resposta (AGORA VAI MUDAR)
 interface IResponseDTO {
   user: User;
-  token: string;
+  token: string; // O Access Token (crachá)
+  refresh_token: string; // O Refresh Token (chave mestra)
 }
 
 @injectable()
@@ -28,57 +29,73 @@ class AuthenticateUserService {
     private userRepository: IUserRepository,
 
     @inject("HashProvider")
-    private hashProvider: IHashProvider
+    private hashProvider: IHashProvider,
+
+    // 2. INJETA O NOVO REPOSITÓRIO
+    @inject("UserTokensRepository")
+    private userTokensRepository: IUserTokensRepository
   ) {}
 
   public async execute({
     email,
     password,
   }: IRequestDTO): Promise<IResponseDTO> {
-    // --- Regras de Negócio do Login ---
-
-    // 1. Verificar se o usuário existe
+    // --- 1. Validar Usuário e Senha (Não mudou) ---
     const user = await this.userRepository.findByEmail(email);
-
     if (!user) {
-      // Usamos uma mensagem genérica por segurança
       throw new AppError("Email ou senha incorretos.", 401);
     }
 
-    // 2. Verificar se a senha bate (comparando a senha pura com o hash)
     const passwordMatched = await this.hashProvider.compareHash(
       password,
-      user.password // O hash que está salvo no banco
+      user.password
     );
-
     if (!passwordMatched) {
       throw new AppError("Email ou senha incorretos.", 401);
     }
 
-    // 3. Gerar o Token JWT
+    // --- 2. Gerar o Access Token (Crachá de 15min) ---
     const { secret, expiresIn } = authConfig.jwt;
 
-    // 3a. Coloque o 'subject' DENTRO do payload, usando a claim 'sub'
     const payload = {
       sub: user.id,
       name: user.name,
       email: user.email,
-      // Você pode adicionar outras informações "não-sensíveis" aqui se quiser
-      // ex: name: user.name,
     };
 
-    // 3b. Agora, a assinatura da função 'sign' fica inequívoca
-    const token = sign(
-      payload, // 1. O Payload com o 'sub'
-      secret, // 2. O Segredo (que agora é 100% string)
-      {
-        // 3. As Opções
-        expiresIn,
-      } as SignOptions // <-- 3. TIPAGEM explícita aqui
-    );
+    const token = sign(payload, secret, {
+      expiresIn,
+    } as SignOptions);
 
-    // 4. Retornar o usuário e o token
-    return { user, token };
+    // --- 3. Gerar o Refresh Token (Chave Mestra de 7 dias) ---
+    const {
+      secret: refreshTokenSecret,
+      expiresIn: refreshTokenExpiresIn,
+      expiresInDays: refreshTokenExpiresInDays,
+    } = authConfig.refreshToken;
+
+    // O payload do Refresh Token só precisa do ID do usuário
+    const refreshToken = sign({}, refreshTokenSecret, {
+      subject: user.id, // Usando 'subject' aqui (padrão)
+      expiresIn: refreshTokenExpiresIn,
+    } as SignOptions);
+
+    // 4. Calcular a data de expiração do Refresh Token para salvar no BANCO
+    const expires_at = addDays(new Date(), refreshTokenExpiresInDays);
+
+    // 5. Salvar o Refresh Token no Banco de Dados
+    await this.userTokensRepository.create({
+      token: refreshToken,
+      user_id: user.id,
+      expires_at,
+    });
+
+    // 6. Retornar os DOIS tokens
+    return {
+      user,
+      token, // O Access Token (15min)
+      refresh_token: refreshToken, // O Refresh Token (7dias)
+    };
   }
 }
 

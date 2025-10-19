@@ -21,6 +21,8 @@ import { AppDataSource } from "@shared/infra/typeorm/datasource";
 // 5. Importa o container (TSyringe) para carregar as "receitas"
 import "@shared/container";
 
+import cookieParser from "cookie-parser"; // 1. IMPORTE
+
 // --- FIM DAS IMPORTAÇÕES ---
 
 // Inicializa a conexão com o banco
@@ -34,6 +36,7 @@ AppDataSource.initialize()
     // Middlewares globais
     app.use(cors()); // Habilita CORS
     app.use(express.json()); // Habilita o Express para ler JSON no body
+    app.use(cookieParser());
 
     // Rotas
     app.use(routes); // Usa nosso roteador principal

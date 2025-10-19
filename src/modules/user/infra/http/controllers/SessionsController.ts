@@ -1,27 +1,33 @@
 import { Request, Response } from "express";
 import { container } from "tsyringe";
-import { classToPlain } from "class-transformer"; // Para a View!
+import { classToPlain } from "class-transformer";
 
 import AuthenticateUserService from "@modules/user/services/AuthenticateUserService";
 
 class SessionsController {
   public async create(request: Request, response: Response): Promise<Response> {
-    // 1. Pegar os dados do login
     const { email, password } = request.body;
-
-    // 2. Resolver (pegar) o Service
     const authenticateUser = container.resolve(AuthenticateUserService);
 
-    // 3. Executar o Service
-    const { user, token } = await authenticateUser.execute({
+    // 1. O Service agora retorna os DOIS tokens
+    const { user, token, refresh_token } = await authenticateUser.execute({
       email,
       password,
     });
 
-    // 4. Aplicar a "View" para remover a senha
+    // 2. Aplicar a "View" (remover a senha)
     const userView = classToPlain(user);
 
-    // 5. Retornar a resposta
+    // 3. Criar o Cookie para o Refresh Token
+    response.cookie("refreshToken", refresh_token, {
+      httpOnly: true, // O JavaScript do frontend NÃO PODE ler este cookie
+      secure: process.env.NODE_ENV === "production", // Só enviar em HTTPS (em produção)
+      sameSite: "strict", // Ajuda a prevenir ataques CSRF
+      // maxAge: ... (poderíamos definir a expiração aqui também)
+      path: "/", // O cookie estará disponível em toda a aplicação
+    });
+
+    // 4. Retornar a resposta (JSON com o Access Token)
     return response.json({ user: userView, token });
   }
 }

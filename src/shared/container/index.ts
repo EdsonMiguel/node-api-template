@@ -14,3 +14,18 @@ import UserRepository from "@modules/user/infra/typeorm/repositories/UserReposit
 // Quando alguém pedir 'UserRepository' (Contrato),
 // entregue uma instância Singleton (única) de 'UserRepository' (Implementação).
 container.registerSingleton<IUserRepository>("UserRepository", UserRepository);
+
+/* --- Hash Provider --- */
+// ... (registro do HashProvider) ...
+
+/* --- User Repository --- */
+// ... (registro do IUserRepository) ...
+
+/* --- User Tokens Repository (NOVO!) --- */
+import IUserTokensRepository from "@modules/user/repositories/IUserTokensRepository";
+import UserTokensRepository from "@modules/user/infra/typeorm/repositories/UserTokensRepository";
+
+container.registerSingleton<IUserTokensRepository>(
+  "UserTokensRepository",
+  UserTokensRepository
+);
