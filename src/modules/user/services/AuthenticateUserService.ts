@@ -25,11 +25,11 @@ class AuthenticateUserService {
     @inject("UserRepository")
     private userRepository: IUserRepository,
 
-    @inject("HashProvider")
-    private hashProvider: IHashProvider,
-
     @inject("UserTokensRepository")
-    private userTokensRepository: IUserTokensRepository
+    private userTokensRepository: IUserTokensRepository,
+
+    @inject("HashProvider")
+    private hashProvider: IHashProvider
   ) {}
 
   public async execute({
