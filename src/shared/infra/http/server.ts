@@ -8,6 +8,8 @@ import routes from "./routes";
 import { AppDataSource } from "@shared/infra/typeorm/datasource";
 import "@shared/container";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express"; // 1. IMPORTE o Swagger UI
+import swaggerSpecs from "@config/swagger"; // 2. IMPORTE nossas specs
 
 AppDataSource.initialize()
   .then(() => {
@@ -17,6 +19,7 @@ AppDataSource.initialize()
     app.use(express.json());
     app.use(cookieParser());
     app.use(routes);
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
     app.use(
       (err: Error, request: Request, response: Response, _: NextFunction) => {
         if (err instanceof AppError) {
