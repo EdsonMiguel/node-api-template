@@ -1,14 +1,17 @@
 services:
+  # Serviço do Banco de Dados PostgreSQL
   postgres_db:
-    image: postgres
-    container_name: template_db
+    image: postgres:14-alpine
+    container_name: template_db # Mudamos o nome para refletir o template
     restart: always
     ports:
-      - "5432:5432" # Expõe a porta do PG
+      - "5432:5432" # Expõe a porta do PG para o seu computador
     environment:
       - POSTGRES_USER=docker
-      - POSTGRES_PASSWORD=dockerpass
-      - POSTGRES_DB=world_cup_db
+      - POSTGRES_PASSWORD=dockerpass # Mudamos a senha no último setup
+      - POSTGRES_DB=template_api # Mudamos o nome do banco
     volumes:
-      # Garante que os dados não se percam
+      # Isso garante que os dados não se percam quando o container parar
       - ./pgdata:/var/lib/postgresql/data
+
+  # (Opcional) Interface gráfica para gerenciar o banco
